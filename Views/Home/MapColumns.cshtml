@@ -1,0 +1,55 @@
+﻿
+<h3>Map Excel Columns to DB Columns</h3>
+<form id="mappingForm">
+    <table>
+        <thead><tr><th>Excel Column</th><th>Map to DB Column</th></tr></thead>
+        <tbody>
+            @foreach (var header in ViewBag.Headers as List<string>)
+            {
+                <tr>
+                    <td>@header</td>
+                    <td>
+                        <select name="mappings">
+                            <option value="">-- Select --</option>
+                            @foreach (var dbCol in ViewBag.DbColumns as List<string>)
+                            {
+                                <option value="@dbCol">@dbCol</option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="button" onclick="submitMapping()">Import</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function submitMapping() {
+        var mappings = [];
+
+        $('#mappingForm tr').each(function () {
+            var excelCol = $(this).find('td:first').text();
+            var dbCol = $(this).find('select').val();
+            if (dbCol) {
+                mappings.push({ excelColumn: excelCol, dbColumn: dbCol });
+            }
+        });
+
+        $.ajax({
+            url: '/api/import/importdata',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                mappings: mappings,
+                fileName: '@TempData["Filename"]' // inject it from Razor
+            }),
+            success: function () {
+                alert('Import successful!');
+                window.location.href = '/Home/Index';
+            }
+        });
+    }
+</script>
+
